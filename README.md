@@ -22,3 +22,12 @@ This is a NestJS-based microservice for managing posts. It supports basic CRUD o
 ```bash
 npm install
 npm run start:dev
+```
+
+## Database and Migrations
+
+This service uses PostgreSQL and TypeORM for the database.
+
+### Running with Docker
+```bash
+docker compose up --build
