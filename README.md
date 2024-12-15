@@ -1,8 +1,8 @@
 # Posts Service
 
-This is a NestJS-based microservice for managing posts. It supports basic CRUD operations and is intended to be part of a larger platform. This project is currently in development.
+This is a NestJS-based microservice for managing posts. It supports basic CRUD operations and is intended to be part of a larger platform.
 
-## Features (Planned)
+## Features
 - Create, Read, Update, Delete operations on `Post` entities.
 - Automatic validation of inputs.
 - Hash generation (MD5) based on the post's title and content.
@@ -69,18 +69,19 @@ Migrations have been set up so that the `posts` table is created automatically.
         "state": "DRAFT"
       }
 
-Body (raw, JSON):
 
 ## Kafka Integration
 
 This service can emit events via Kafka. By default, `EVENTS_PROVIDER=console`, which just logs events to the console. To use Kafka:
 
-1. Ensure `docker-compose.yml` has the `zookeeper` and `kafka` services defined as above.
-2. Set `EVENTS_PROVIDER=kafka` in your `.env` file (or in `docker-compose.yml` environment section of `posts-service`):
-   ```env
-   EVENTS_PROVIDER=kafka
-   KAFKA_BROKER=kafka:9092
-   KAFKA_TOPIC=posts_events
+1. Ensure `docker-compose.yml` has the `zookeeper` and `kafka` services defined.
+2. Set `EVENTS_PROVIDER=kafka` in your `.env` file and in `docker-compose.yml` environment section of `posts-service`.
+
+To see kafka in action you can listen to the incoming events by running:
+```bash
+docker exec -it kafka bash
+kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic posts_events --from-beginning
+```
    
 ## Error Handling
 
@@ -91,6 +92,13 @@ All errors are handled by a global exception filter, which ensures the response 
   "status": 404,
   "service": "posts"
 }
+```
 
+## Troubleshooting
+<span style="color:red"> posts-db [116] ERROR:  relation "posts" does not exist </span>
 
+   This message in the console means the database on doker image started without running the migrations. To fix the problem: make sure the doker image is running, then in the second terminal run:
+```
+docker compose exec posts-service npm run migration:run
+```
 

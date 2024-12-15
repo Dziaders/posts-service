@@ -25,13 +25,24 @@ export class PostsService {
     const post = this.postRepository.create({ title, content, state });
     post.hash = this.generateHash(title, content);
 
-    const savedPost = await this.postRepository.save(post);
+    try {
+      const savedPost = await this.postRepository.save(post);
 
-    await this.eventsService.emitEvent('post_created', {
-      id: savedPost.id,
-      title: savedPost.title,
-    });
-    return savedPost;
+      await this.eventsService.emitEvent('post_created', {
+        id: savedPost.id,
+        title: savedPost.title,
+      });
+
+      return savedPost;
+    } catch (error) {
+      // Handle duplicate entry error
+      if (error.code === '23505') {
+        throw new BadRequestException(
+          'A post with the same title already exists',
+        );
+      }
+      throw error;
+    }
   }
 
   async findAll(): Promise<Post[]> {
