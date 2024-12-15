@@ -81,5 +81,16 @@ This service can emit events via Kafka. By default, `EVENTS_PROVIDER=console`, w
    EVENTS_PROVIDER=kafka
    KAFKA_BROKER=kafka:9092
    KAFKA_TOPIC=posts_events
+   
+## Error Handling
+
+All errors are handled by a global exception filter, which ensures the response follows the format:
+```json
+{
+  "message": "Entity not found",
+  "status": 404,
+  "service": "posts"
+}
+
 
 
