@@ -12,7 +12,7 @@ services:
       DB_PASSWORD: postgres
       DB_NAME: posts_db
       EVENTS_PROVIDER: console
-      # If you'd like to switch to Kafka, set EVENTS_PROVIDER=kafka in .env or here
+      # If you'd like to switch to Kafka, set EVENTS_PROVIDER=kafka in .env and above
       KAFKA_BROKER: kafka:9092
       KAFKA_TOPIC: posts_events
     depends_on:
