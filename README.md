@@ -44,3 +44,42 @@ The `Post` entity has the following fields:
 - `created_at`/`updated_at` (datetime): Managed by the application/database.
 
 Migrations have been set up so that the `posts` table is created automatically.
+
+### Hash Generation & State Defaults
+- If `state` is not provided when creating a post, it defaults to `DRAFT`.
+- `hash` is automatically generated (MD5) from `title + content` during creation and every update.
+- `created_at` and `updated_at` timestamps are managed automatically by the database (via TypeORM decorators).
+
+## CRUD operations:
+
+    GET /posts → findAll()
+    POST /posts → create()
+    GET /posts/:id → findOne()
+    PUT /posts/:id → update()
+    DELETE /posts/:id → remove()
+
+### Postman request example
+    Method: POST
+    URL: http://localhost:3000/posts
+    Headers: Content-Type: application/json
+    Body (raw, JSON):
+      {
+        "title": "My First Post",
+        "content": "This is the content of my first post.",
+        "state": "DRAFT"
+      }
+
+Body (raw, JSON):
+
+## Kafka Integration
+
+This service can emit events via Kafka. By default, `EVENTS_PROVIDER=console`, which just logs events to the console. To use Kafka:
+
+1. Ensure `docker-compose.yml` has the `zookeeper` and `kafka` services defined as above.
+2. Set `EVENTS_PROVIDER=kafka` in your `.env` file (or in `docker-compose.yml` environment section of `posts-service`):
+   ```env
+   EVENTS_PROVIDER=kafka
+   KAFKA_BROKER=kafka:9092
+   KAFKA_TOPIC=posts_events
+
+

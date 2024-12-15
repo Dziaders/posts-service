@@ -5,19 +5,28 @@ import { Post } from './post.entity';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import * as crypto from 'crypto';
+import { EventsService } from '../events/events.service';
 
 @Injectable()
 export class PostsService {
   constructor(
     @InjectRepository(Post)
     private readonly postRepository: Repository<Post>,
+    private readonly eventsService: EventsService,
   ) {}
 
   async create(createPostDto: CreatePostDto): Promise<Post> {
-    const { title, content } = createPostDto;
-    const post = this.postRepository.create(createPostDto);
+    const { title, content, state } = createPostDto;
+    const post = this.postRepository.create({ title, content, state });
     post.hash = this.generateHash(title, content);
-    return this.postRepository.save(post);
+
+    const savedPost = await this.postRepository.save(post);
+
+    await this.eventsService.emitEvent('post_created', {
+      id: savedPost.id,
+      title: savedPost.title,
+    });
+    return savedPost;
   }
 
   async findAll(): Promise<Post[]> {
@@ -35,21 +44,34 @@ export class PostsService {
   async update(id: string, updatePostDto: UpdatePostDto): Promise<Post> {
     const post = await this.findOne(id);
 
-    // Update fields
-    if (updatePostDto.title !== undefined) post.title = updatePostDto.title;
-    if (updatePostDto.content !== undefined)
+    if (updatePostDto.title !== undefined) {
+      post.title = updatePostDto.title;
+    }
+    if (updatePostDto.content !== undefined) {
       post.content = updatePostDto.content;
-    if (updatePostDto.state !== undefined) post.state = updatePostDto.state;
+    }
+    if (updatePostDto.state !== undefined) {
+      post.state = updatePostDto.state;
+    }
 
-    // Regenerate hash if title or content changed
     post.hash = this.generateHash(post.title, post.content);
+    const updatedPost = await this.postRepository.save(post);
 
-    return this.postRepository.save(post);
+    await this.eventsService.emitEvent('post_updated', {
+      id: updatedPost.id,
+      title: updatedPost.title,
+    });
+    return updatedPost;
   }
 
   async remove(id: string): Promise<void> {
     const post = await this.findOne(id);
     await this.postRepository.remove(post);
+
+    await this.eventsService.emitEvent('post_deleted', {
+      id: post.id,
+      title: post.title,
+    });
   }
 
   private generateHash(title: string, content: string): string {

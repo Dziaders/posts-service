@@ -11,8 +11,13 @@ services:
       DB_USER: postgres
       DB_PASSWORD: postgres
       DB_NAME: posts_db
+      EVENTS_PROVIDER: console
+      # If you'd like to switch to Kafka, set EVENTS_PROVIDER=kafka in .env or here
+      KAFKA_BROKER: kafka:9092
+      KAFKA_TOPIC: posts_events
     depends_on:
       - db
+      - kafka
     command: "npm run start:prod"
 
   db:
@@ -29,3 +34,31 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  zookeeper:
+    image: bitnami/zookeeper:3.8
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ALLOW_ANONYMOUS_LOGIN: "yes" # Add this line
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: bitnami/kafka:3.5
+    container_name: kafka
+    volumes:
+      - ./kafka_data:/bitnami/kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+    ports:
+      - "9092:9092"
