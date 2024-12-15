@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Post } from './post.entity';
@@ -6,6 +10,7 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import * as crypto from 'crypto';
 import { EventsService } from '../events/events.service';
+import { isUUID } from 'class-validator';
 
 @Injectable()
 export class PostsService {
@@ -34,10 +39,16 @@ export class PostsService {
   }
 
   async findOne(id: string): Promise<Post> {
+    if (!isUUID(id)) {
+      throw new BadRequestException('Invalid ID format');
+    }
+
     const post = await this.postRepository.findOne({ where: { id } });
+
     if (!post) {
       throw new NotFoundException('Post not found');
     }
+
     return post;
   }
 
