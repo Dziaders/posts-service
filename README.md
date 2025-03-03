@@ -1,6 +1,6 @@
 # Posts Service
 
-This is a NestJS-based microservice for managing posts. It supports basic CRUD operations and is intended to be part of a larger platform.
+This is a NestJS-based demo project for managing website posts. It supports basic CRUD operations and is intended to be part of a larger platform.
 
 ## Features
 - Create, Read, Update, Delete operations on `Post` entities.
